@@ -1,0 +1,56 @@
+/* === LeetCode-like light code block theme === */
+
+.highlighter-rouge pre.highlight,
+pre.highlight,
+pre code,
+pre {
+  background: #f8f9fb; /* very light gray like LeetCode editor */
+  color: #1e1e1e;
+  font-family: "JetBrains Mono", "Fira Code", "Consolas", "Monaco", monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+}
+
+/* Inline code */
+p code,
+li code {
+  background: #f2f3f5;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: #c7254e;
+}
+
+/* Optional: adjust syntax colors like LeetCode's editor */
+.highlight .k, /* keywords */
+.highlight .kd,
+.highlight .kn {
+  color: #cf222e; /* red-ish for 'class', 'return', etc. */
+}
+
+.highlight .n, /* names, variables */
+.highlight .p {
+  color: #1f2328;
+}
+
+.highlight .nb, /* builtins like 'int', 'bool' */
+.highlight .kt {
+  color: #0550ae;
+}
+
+.highlight .nf { /* function names */
+  color: #8250df;
+}
+
+.highlight .s { /* strings */
+  color: #0a3069;
+}
+
+.highlight .c { /* comments */
+  color: #6e7781;
+  font-style: italic;
+}
