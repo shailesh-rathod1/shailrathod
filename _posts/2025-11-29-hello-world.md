@@ -1,4 +1,5 @@
 ---
+layout: post
 title: "Hello World"
 date: 2025-11-29 19:00:00 +0530
 categories: [Blog]
