@@ -11,86 +11,28 @@
 /* append your custom style below */
 
 
-// .dark-text-block {
-//   background-color: #000000ff;   /* dark bg */
-//   color: #e2e5e9;              /* light text */
-//   padding: 1rem 1.2rem;
-//   border-radius: 12px;
-//   border: 1px solid #2d2f31;
-//   margin: 1rem 0;
-//   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-//   white-space: pre-wrap;       /* line breaks respected */
-// }
 
-/* === ChatGPT conversation style for posts === */
+/* === Make post text same brightness as ChatGPT === */
+.post-content p,
+.post-content li,
+.post-content span,
+.post-content strong,
+.post-content em {
+  color: #ececf1 !important; /* ChatGPT bright text tone */
+}
 
-/* 1. Page background */
-.page__content {
-  /* === ChatGPT Dark Page Base === */
-  background-color: #343541;   /* ChatGPT dark gray */
-  color: #ececf1;              /* ChatGPT white text */
+/* Base text for paragraphs, lists, etc. */
+.post-content {
+  color: #ececf1 !important;
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-  line-height: 1.65;
-  padding: 2rem 1.8rem;
-  border-radius: 10px;
-  margin-top: 1rem;
+  line-height: 1.7;
+  font-size: 1rem;
 }
 
-/* 2. Message-style container */
-.chat-bubble {
-  background-color: #444654;   /* Slightly lighter gray bubble */
-  color: #ececf1;
-  padding: 1rem 1.3rem;
-  border-radius: 12px;
-  margin: 1.2rem 0;
-  font-size: 0.96rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Different shades for “user” and “assistant” */
-.chat-user {
-  background-color: #3e3f4b; /* darker bubble for user */
-}
-.chat-assistant {
-  background-color: #444654; /* lighter bubble for assistant */
-}
-
-/* 3. ChatGPT-style dark code block */
-.chat-bubble pre,
-pre.highlight {
-  background-color: #1a1b1e !important;
-  color: #e2e5e9 !important;
-  border-radius: 10px;
-  padding: 1rem 1.3rem;
-  border: 1px solid #2a2b2f;
-  font-family: "JetBrains Mono", "Fira Code", monospace;
-  font-size: 0.9rem;
-  line-height: 1.55;
-  overflow-x: auto;
-}
-
-/* Inline code */
-.chat-bubble code,
-code.highlighter-rouge {
-  background: #2d2f31;
-  color: #e2e5e9;
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  font-family: "JetBrains Mono", "Fira Code", monospace;
-}
-
-/* 4. Headings in GPT tone */
-.page__content h1,
-.page__content h2,
-.page__content h3 {
-  color: #ffffff;
+/* Headings (match GPT chat header brightness) */
+.post-content h1,
+.post-content h2,
+.post-content h3 {
+  color: #ffffff !important;
   font-weight: 600;
 }
-
-/* 5. Add slight bubble spacing */
-.chat-bubble p:last-child {
-  margin-bottom: 0;
-}
-
-
