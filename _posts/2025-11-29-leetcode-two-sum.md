@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "LeetCode – Two Sum (Easy)"
+title: "LeetCode – 1. Two Sum (Easy)"
 date: 2025-11-29 20:00:00 +0530
 categories: [DSA, LeetCode]
 tags: [leetcode, array, hash-map, easy]
