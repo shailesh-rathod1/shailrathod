@@ -6,4 +6,4 @@ order: 6
 
 You can explore:
 
-- [All WLAN posts]({{ '/tags/WLAN/' | relative_url }})
+- [All WLAN posts]({{ '/tags/wlan/' | relative_url }})
