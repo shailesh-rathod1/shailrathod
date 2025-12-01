@@ -20,4 +20,30 @@ description: "Connman In Depth with seq diagrams"
 
 ---
 
+![System Initialization](/assets/img/connman_dhpc.jpg)
+
+---
+
+![System Initialization](/assets/img/connman_route.jpg)
+
+---
+
+![System Initialization](/assets/img/connman_dns.jpg)
+
+---
+
+![System Initialization](/assets/img/connman_tech.jpg)
+
+---
+
+![System Initialization](/assets/img/connman_autoconnect.jpg)
+
+---
+
+![System Initialization](/assets/img/connman_online.jpg)
+
+---
+
+
+
 
