@@ -33,7 +33,6 @@ description: "Connman Vs NetworkManager in  Depth"
 5. [Use Cases](#use-cases)
 6. [Code Comparison](#code-comparison)
 7. [Ecosystem Integration](#ecosystem-integration)
-8. [When to Use Which](#when-to-use-which)
 
 ---
 
