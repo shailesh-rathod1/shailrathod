@@ -3,11 +3,11 @@ layout: post
 title: "DNS Cache in C"
 date: 2026-01-03 16:00:00 +0530
 categories: [Blog]
-description: "DNS Cache in C"
+description: "DNS Cache in C , 5M insertion in ~15-20 Sec"
 
 ---
 
-
+### Without optimization ###
 ```c
 #include<stdio.h>
 #include<stdlib.h>
@@ -370,4 +370,272 @@ int main() {
 	
     return 0;
 }
+```
+
+### Optimized 5M insertion in ~15-20 sec ###
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <stdbool.h>
+
+#define MAX_DOMAIN_LEN 256
+#define MAX_IP_LEN 16
+
+/* ===================== DATA STRUCTURES ===================== */
+
+typedef struct dns_record {
+    char domain[MAX_DOMAIN_LEN];
+    char ip[MAX_IP_LEN];
+    time_t expiry;
+
+    struct dns_record *hash_next;
+    struct dns_record *lru_prev;
+    struct dns_record *lru_next;
+} dns_record_t;
+
+typedef struct dns_cache {
+    dns_record_t **buckets;
+    size_t num_buckets;
+
+    size_t size;
+    size_t capacity;
+
+    dns_record_t *lru_head;
+    dns_record_t *lru_tail;
+
+    /* MEMORY POOL */
+    dns_record_t *pool;
+    size_t pool_index;
+} dns_cache_t;
+
+static dns_cache_t *cache = NULL;
+
+/* ===================== UTIL ===================== */
+
+static size_t next_power_of_two(size_t n) {
+    size_t p = 1;
+    while (p < n) p <<= 1;
+    return p;
+}
+
+static unsigned long hash_string(const char *str) {
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *str++))
+        hash = ((hash << 5) + hash) + c;
+    return hash;
+}
+
+/* ===================== LRU HELPERS ===================== */
+
+static void lru_remove(dns_record_t *rec) {
+    if (rec->lru_prev)
+        rec->lru_prev->lru_next = rec->lru_next;
+    else
+        cache->lru_head = rec->lru_next;
+
+    if (rec->lru_next)
+        rec->lru_next->lru_prev = rec->lru_prev;
+    else
+        cache->lru_tail = rec->lru_prev;
+}
+
+static void lru_insert_head(dns_record_t *rec) {
+    rec->lru_prev = NULL;
+    rec->lru_next = cache->lru_head;
+
+    if (cache->lru_head)
+        cache->lru_head->lru_prev = rec;
+
+    cache->lru_head = rec;
+
+    if (!cache->lru_tail)
+        cache->lru_tail = rec;
+}
+
+static void lru_move_to_head(dns_record_t *rec) {
+    if (cache->lru_head == rec)
+        return;
+    lru_remove(rec);
+    lru_insert_head(rec);
+}
+
+/* ===================== HASH REMOVE ===================== */
+
+static void hash_remove(const char *domain, size_t idx) {
+    dns_record_t *cur = cache->buckets[idx];
+    dns_record_t *prev = NULL;
+
+    while (cur) {
+        if (strcmp(cur->domain, domain) == 0) {
+            if (prev)
+                prev->hash_next = cur->hash_next;
+            else
+                cache->buckets[idx] = cur->hash_next;
+            return;
+        }
+        prev = cur;
+        cur = cur->hash_next;
+    }
+}
+
+/* ===================== EVICT ===================== */
+
+static void evict_lru(void) {
+    if (!cache->lru_tail)
+        return;
+
+    dns_record_t *victim = cache->lru_tail;
+    size_t idx = hash_string(victim->domain) & (cache->num_buckets - 1);
+
+    lru_remove(victim);
+    hash_remove(victim->domain, idx);
+
+    /* NOTE: no free() – memory stays in pool */
+    cache->size--;
+}
+
+/* ===================== API ===================== */
+
+bool dns_cache_init(size_t capacity) {
+    if (capacity == 0)
+        return false;
+
+    cache = calloc(1, sizeof(dns_cache_t));
+    if (!cache)
+        return false;
+
+    cache->capacity = capacity;
+    cache->num_buckets = next_power_of_two((capacity * 4) / 3);
+
+    cache->buckets = malloc(cache->num_buckets * sizeof(dns_record_t *));
+    if (!cache->buckets)
+        return false;
+
+    memset(cache->buckets, 0,
+           cache->num_buckets * sizeof(dns_record_t *));
+
+
+    /* MEMORY POOL */
+    cache->pool = malloc(sizeof(dns_record_t) * capacity);
+    if (!cache->pool)
+        return false;
+
+    cache->pool_index = 0;
+    return true;
+}
+
+bool dns_cache_lookup(const char *domain, char *ip_buf, size_t buf_len) {
+    if (!cache || !domain || !ip_buf)
+        return false;
+
+    size_t idx = hash_string(domain) & (cache->num_buckets - 1);
+    dns_record_t *cur = cache->buckets[idx];
+    time_t now = time(NULL);
+
+    while (cur) {
+        if (strcmp(cur->domain, domain) == 0) {
+            if (cur->expiry <= now) {
+                lru_remove(cur);
+                hash_remove(domain, idx);
+                cache->size--;
+                return false;
+            }
+
+            strncpy(ip_buf, cur->ip, buf_len - 1);
+            ip_buf[buf_len - 1] = '\0';
+            lru_move_to_head(cur);
+            return true;
+        }
+        cur = cur->hash_next;
+    }
+    return false;
+}
+
+bool dns_cache_insert(const char *domain, const char *ip, long ttl) {
+    if (!cache || !domain || !ip || ttl <= 0)
+        return false;
+
+    size_t idx = hash_string(domain) & (cache->num_buckets - 1);
+    dns_record_t *cur = cache->buckets[idx];
+    time_t now = time(NULL);
+
+    while (cur) {
+        if (strcmp(cur->domain, domain) == 0) {
+            strncpy(cur->ip, ip, MAX_IP_LEN - 1);
+            cur->ip[MAX_IP_LEN - 1] = '\0';
+            cur->expiry = now + ttl;
+            lru_move_to_head(cur);
+            return true;
+        }
+        cur = cur->hash_next;
+    }
+
+    if (cache->size >= cache->capacity)
+        evict_lru();
+
+    if (cache->pool_index >= cache->capacity)
+        return false;
+
+    dns_record_t *rec = &cache->pool[cache->pool_index++];
+
+    strncpy(rec->domain, domain, MAX_DOMAIN_LEN - 1);
+    rec->domain[MAX_DOMAIN_LEN - 1] = '\0';
+    strncpy(rec->ip, ip, MAX_IP_LEN - 1);
+    rec->ip[MAX_IP_LEN - 1] = '\0';
+    rec->expiry = now + ttl;
+
+    rec->hash_next = cache->buckets[idx];
+    cache->buckets[idx] = rec;
+
+    rec->lru_prev = rec->lru_next = NULL;
+    lru_insert_head(rec);
+
+    cache->size++;
+    return true;
+}
+
+void dns_cache_destroy(void) {
+    if (!cache)
+        return;
+
+    free(cache->pool);
+    free(cache->buckets);
+    free(cache);
+    cache = NULL;
+}
+
+/* ===================== TEST ===================== */
+
+int main(void) {
+    dns_cache_init(5000000);
+
+    char ip[16];
+    clock_t start = clock();
+
+    for (int i = 0; i < 5000000; i++) {
+       if (i % 100000 == 0) {
+       // printf("progress: %d\n", i);
+        fflush(stdout);
+        }
+        char d[32], a[16];
+        snprintf(d, sizeof(d), "g%d", i);
+        snprintf(a, sizeof(a), "1.%d", i);
+        dns_cache_insert(d, a, 300);
+        dns_cache_lookup(d, ip, sizeof(ip));
+    }
+     fflush(stdout);
+
+    clock_t end = clock();
+    printf("Time: %.3f ms\n",
+           1000.0 * (end - start) / CLOCKS_PER_SEC);
+          
+
+    dns_cache_destroy();
+    return 0;
+}
+
 ```
