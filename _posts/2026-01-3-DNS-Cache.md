@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "DNS Cache in C"
-date: 2026-01-03 16:00:00 +0530
+date: 2026-01-03 15:00:00 +0530
 categories: [Blog]
 description: "DNS Cache in C , 5M insertion in ~15-20 Sec"
 
