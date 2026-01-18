@@ -16,12 +16,7 @@ description: "Connman wpa_supplicant wifi67 in  Depth"
 
 **Why This is Valuable:**
 - ✅ Real-world impact (improves actual user experience)
-- ✅ Leverages your ConnMan knowledge
 - ✅ Connects to cutting-edge WiFi 7 technology
-- ✅ Demonstrates full-stack understanding
-- ✅ Good for resume/interviews (shows breadth)
-- ✅ Practical contribution (not just theoretical)
-
 ---
 
 ## The Gap: What's Missing Today
